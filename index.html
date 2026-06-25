@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<!-- saved from url=(0055)file:///Users/matiasfrancois/Downloads/VARBA_App_3.html -->
+<!-- saved from url=(0055)file:///Users/matiasfrancois/Downloads/VARBA_App_5.html -->
 <html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="VARBA">
 <title>VARBA Tesoreria</title>
-<link rel="stylesheet" href="./VARBA Tesoreria_files/tabler-icons.min.css">
+<link rel="stylesheet" href="./index_files/tabler-icons.min.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -737,19 +737,12 @@ function init(){
     if(Array.isArray(res[2]))gastos=res[2];
     if(Array.isArray(res[3]))eventos=res[3];
     setConn(true);updateBadge();
-    // Re-render current visible section after data loads
-    var views=['cobro','gasto','panel','deudas','movs','eventos','stats','cuentas'];
-    views.forEach(function(v){
-      var el=document.getElementById('v-'+v);
-      if(el&&el.classList.contains('on')){
-        if(v==='deudas')renderDeudas();
-        if(v==='cuentas')renderCuentas();
-        if(v==='movs'){renderMovs();renderGastos();}
-        if(v==='eventos')renderEventos();
-        if(v==='panel')renderPanel();
-        if(v==='stats')renderStats();
-      }
-    });
+    renderDeudas();
+    renderMovs();
+    renderGastos();
+    renderCuentas();
+    renderEventos();
+    renderPanel();
     toast('Conectado - '+socios.length+' socios','ok');
   }).catch(function(){setConn(false);toast('Sin conexion','err')}).finally(function(){hideLoad()});
 }
