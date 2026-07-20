@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0055)file:///Users/matiasfrancois/Downloads/VARBA_App_5.html -->
+<!-- saved from url=(0055)file:///Users/matiasfrancois/Downloads/VARBA_App_6.html -->
 <html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -636,19 +636,38 @@ var selSocio=null,selTipo='Cuota mensual',selMet='Efectivo',selCat='',selMetG='E
 var filtDeu='todos',filtEv='todos',lastSid=null,editCtx=null;
 
 
+function normAp(s) {
+  return String(s||'').toUpperCase()
+    .trim()
+    .replace(/[ÁÀÄÂ]/g,'A')
+    .replace(/[ÉÈËÊ]/g,'E')
+    .replace(/[ÍÌÏÎ]/g,'I')
+    .replace(/[ÓÒÖÔ]/g,'O')
+    .replace(/[ÚÙÜÛ]/g,'U')
+    .replace(/Ñ/g,'N');
+}
+
 function getRopaSaldo(apellido) {
   if (!apellido || !ropaData.length) return null;
-  var ap = String(apellido).trim().toUpperCase();
-  // Busqueda exacta primero
+  var ap = normAp(apellido);
+
+  // 1. Exacto normalizado (ignora mayus/minus/acentos)
   var match = ropaData.find(function(r) {
-    return r.apellido === ap;
+    return normAp(r.apellido) === ap;
   });
   if (match) return match;
-  // Busqueda parcial si no encontro exacto
-  match = ropaData.find(function(r) {
-    return r.apellido.indexOf(ap) >= 0 || ap.indexOf(r.apellido) >= 0;
+
+  // 2. El apellido de tesoreria esta contenido en el de ropa
+  // (ej: VANDOMSELAR dentro de VAN DOMSELAAR)
+  // Solo si hay UN solo resultado para evitar confusion
+  var apSinEsp = ap.replace(/\s+/g,'');
+  var matches = ropaData.filter(function(r) {
+    var rn = normAp(r.apellido).replace(/\s+/g,'');
+    return rn === apSinEsp || rn.indexOf(apSinEsp) >= 0 || apSinEsp.indexOf(rn) >= 0;
   });
-  return match || null;
+  if (matches.length === 1) return matches[0];
+
+  return null;
 }
 
 function ars(n){return '$'+Number(n).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0})}
