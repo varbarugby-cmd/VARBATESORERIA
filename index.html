@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0055)file:///Users/matiasfrancois/Downloads/VARBA_App_1.html -->
+<!-- saved from url=(0055)file:///Users/matiasfrancois/Downloads/VARBA_App_3.html -->
 <html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -592,7 +592,7 @@ textarea{resize:none;height:70px;line-height:1.5}
 <div class="loading" id="loading"><div class="loading-box"><div class="spin"></div><p id="loading-txt">Cargando...</p></div></div>
 
 <script>
-var URL_SCRIPT='https://script.google.com/macros/s/AKfycby40mN1gG5rGg8k6-Ckx8fyU037dNAjg8xqgL58dPCf8e9WHPzVHV9yzVOFp3nRmaR5iw/exec';
+var URL_SCRIPT='https://script.google.com/macros/s/AKfycbyKs4-JK_9VVMhQ16Dm_5WOKys1vbfgRHxS83v-6gO2wdnoD3oojmp1J6wru6XqLT7PGQ/exec';
 var USUARIOS={'matias':{pass:'Matias2026',display:'Matias'},'figon':{pass:'Tesorero2026',display:'Figon'},'quique':{pass:'VARBA2026',display:'Quique'}};
 var usuarioActual=null;
 
@@ -624,16 +624,26 @@ function doLogout(){
   socios=[];movs=[];gastos=[];eventos=[];
 }
 
-var TIPOS=['Cuota mensual','Inscripcion','NAVE56','Alojamiento NAVE56','Fiesta VARBA','Ropa de Juego','Indumentaria','Actividad especial','Multa','Donacion','Otro'];
+var TIPOS=['Cuota mensual','Inscripcion','NAVE56','Alojamiento NAVE56','Ropa NAVE56','Fiesta VARBA','Indumentaria','Actividad especial','Multa','Donacion','Otro'];
 var CATS=['Pago Preparador Fisico','Pago Tercer Tiempo','Materiales Entrenamiento','Alquiler Cancha','Presentes Partidos','Gastos Varios','Otro'];
 var METS=[{l:'Efectivo',i:'ti-cash'},{l:'Transferencia',i:'ti-arrows-exchange'},{l:'Debito',i:'ti-credit-card'},{l:'Credito',i:'ti-credit-card'}];
 // Año de cuotas: Marzo 2026 a Noviembre 2026 = 9 meses
 var MESES=['Mar 26','Abr 26','May 26','Jun 26','Jul 26','Ago 26','Sep 26','Oct 26'];
 var MK=['2026-03','2026-04','2026-05','2026-06','2026-07','2026-08','2026-09','2026-10'];
 var MES_HOY='2026-06';
-var socios=[],movs=[],gastos=[],eventos=[],cuota=50000;
+var socios=[],movs=[],gastos=[],eventos=[],ropaData=[],cuota=50000;
 var selSocio=null,selTipo='Cuota mensual',selMet='Efectivo',selCat='',selMetG='Efectivo';
 var filtDeu='todos',filtEv='todos',lastSid=null,editCtx=null;
+
+
+function getRopaSaldo(apellido) {
+  if (!apellido || !ropaData.length) return null;
+  var ap = String(apellido).trim().toUpperCase();
+  var match = ropaData.find(function(r) {
+    return r.apellido === ap;
+  });
+  return match || null;
+}
 
 function ars(n){return '$'+Number(n).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0})}
 function fd(d){
@@ -731,11 +741,12 @@ function validarG(){document.getElementById('btn-gasto').disabled=!(selCat&&pars
 function init(){
   buildUI();
   showLoad('Conectando con Google Sheets...');
-  Promise.all([apiGet('getSocios'),apiGet('getMovs'),apiGet('getGastos'),apiGet('getEventos')]).then(function(res){
+  Promise.all([apiGet('getSocios'),apiGet('getMovs'),apiGet('getGastos'),apiGet('getEventos'),apiGet('getRopa')]).then(function(res){
     if(Array.isArray(res[0]))socios=res[0];
     if(Array.isArray(res[1]))movs=res[1];
     if(Array.isArray(res[2]))gastos=res[2];
     if(Array.isArray(res[3]))eventos=res[3];
+    if(Array.isArray(res[4]))ropaData=res[4];
     setConn(true);updateBadge();
     // Render todas las secciones en background despues de cargar datos
     setTimeout(function(){
@@ -902,7 +913,7 @@ function renderDeudas(){
   document.getElementById('deu-list').innerHTML=data.length?data.map(function(x){
     var s=x.s,d=x.d,sv=x.sv,dcls=d.deu===0?'di-ok':d.md>=3?'di-red':'di-warn';
     var mH=d.me.map(function(mk){var lbl=MESES[MK.indexOf(mk)];var est=(d.em[lbl]||['na'])[0];var cls=est==='ok'?'ecm-ok':est==='parcial'?'ecm-warn':est==='no'?'ecm-no':'ecm-na';return'<div class="ecm '+cls+'"><div class="ecm-lbl">'+lbl+'</div><div class="ecm-val">'+(est==='ok'?'v':est==='parcial'?'~':est==='no'?'x':'-')+'</div></div>'}).join('');
-    return'<div class="deuda-item '+dcls+'"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="display:flex;align-items:center;gap:10px"><div class="av '+(s.av||'av-g')+'" style="width:40px;height:40px;font-size:14px">'+ini(s)+'</div><div><div style="font-size:14px;font-weight:700">'+s.nombre+' '+s.apellido+'</div><span class="sem '+sv.c+'" style="margin-top:4px;display:inline-flex">'+sv.t+'</span></div></div><div style="text-align:right">'+(d.deu>0?'<div class="amount-neg" style="font-size:18px">'+ars(d.deu)+'</div>':'<div class="amount-pos" style="font-size:22px">v</div>')+'</div></div><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:10px">'+mH+'</div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);align-items:center"><span>'+d.ok+'/'+d.me.length+' cuotas</span>'+(d.deu>0?'<div style="display:flex;gap:7px"><button style="font-size:13px;color:var(--green);background:var(--green-l);border:none;cursor:pointer;font-weight:700;padding:9px 13px;border-radius:8px;min-height:42px" onclick="cobrarR('+s.id+')"><i class="ti ti-bolt"></i> Cobrar</button><button style="font-size:13px;color:#25D366;background:#E8FBF0;border:none;cursor:pointer;font-weight:700;padding:9px 13px;border-radius:8px;min-height:42px;border:1.5px solid #25D366" onclick="enviarWsp('+s.id+')"><i class="ti ti-brand-whatsapp"></i> Recordar</button></div>':'')+'</div></div>';
+    return'<div class="deuda-item '+dcls+'"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="display:flex;align-items:center;gap:10px"><div class="av '+(s.av||'av-g')+'" style="width:40px;height:40px;font-size:14px">'+ini(s)+'</div><div><div style="font-size:14px;font-weight:700">'+s.nombre+' '+s.apellido+'</div><span class="sem '+sv.c+'" style="margin-top:4px;display:inline-flex">'+sv.t+'</span></div></div><div style="text-align:right">'+(d.deu>0?'<div class="amount-neg" style="font-size:18px">'+ars(d.deu)+'</div>':'<div class="amount-pos" style="font-size:22px">v</div>')+'</div></div><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:10px">'+mH+'</div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);align-items:center"><span>'+d.ok+'/'+d.me.length+' cuotas</span>'+(d.deu>0?'<div style="display:flex;gap:7px"><button style="font-size:13px;color:var(--green);background:var(--green-l);border:none;cursor:pointer;font-weight:700;padding:9px 13px;border-radius:8px;min-height:42px" onclick="cobrarR('+s.id+')"><i class="ti ti-bolt"></i> Cobrar</button><button style="font-size:13px;color:#25D366;background:#E8FBF0;border:none;cursor:pointer;font-weight:700;padding:9px 13px;border-radius:8px;min-height:42px;border:1.5px solid #25D366" onclick="enviarWsp('+s.id+')"><i class="ti ti-brand-whatsapp"></i> Recordar</button></div>':'')+(function(){var rp=getRopaSaldo(s.apellido);if(!rp||rp.saldo<=0)return'';return'<div style="margin-top:8px;background:#FFF3E0;border-radius:8px;padding:8px 12px;border:1.5px solid #FFB74D;display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:11px;font-weight:700;color:#E65100">ROPA NAVE56</div><div style="font-size:10px;color:#BF360C">Pagado: '+ars(rp.pagado)+' / '+ars(rp.total)+'</div></div><div style="font-size:15px;font-weight:800;color:#E65100">'+ars(rp.saldo)+'</div></div>';}())+'</div></div>';
   }).join(''):'<div class="empty">Sin socios.</div>';
 }
 function cobrarR(id){goTo('cobro');setTimeout(function(){pickS(id);setMonto(cuota);document.querySelectorAll('#tipo-grid .tc').forEach(function(b){if(b.textContent==='Cuota mensual')b.click()})},80)}
