@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0055)file:///Users/matiasfrancois/Downloads/VARBA_App_6.html -->
+<!-- saved from url=(0055)file:///Users/matiasfrancois/Downloads/VARBA_App_7.html -->
 <html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -424,6 +424,7 @@ textarea{resize:none;height:70px;line-height:1.5}
     <button class="flt" onclick="fD(&#39;critico&#39;,this)">Criticos</button>
     <button class="flt" onclick="fD(&#39;ok&#39;,this)">Al dia</button>
   </div>
+  <input type="text" class="search-inp" id="deu-q" placeholder="Buscar socio..." oninput="renderDeudas()">
   <div id="deu-list"></div>
 </div>
 
@@ -637,36 +638,39 @@ var filtDeu='todos',filtEv='todos',lastSid=null,editCtx=null;
 
 
 function normAp(s) {
-  return String(s||'').toUpperCase()
-    .trim()
-    .replace(/[ÁÀÄÂ]/g,'A')
-    .replace(/[ÉÈËÊ]/g,'E')
-    .replace(/[ÍÌÏÎ]/g,'I')
-    .replace(/[ÓÒÖÔ]/g,'O')
-    .replace(/[ÚÙÜÛ]/g,'U')
-    .replace(/Ñ/g,'N');
+  return String(s||'').toUpperCase().trim()
+    .replace(/[ÁÀÄÂ]/g,'A').replace(/[ÉÈËÊ]/g,'E')
+    .replace(/[ÍÌÏÎ]/g,'I').replace(/[ÓÒÖÔ]/g,'O')
+    .replace(/[ÚÙÜÛ]/g,'U').replace(/Ñ/g,'N');
 }
 
-function getRopaSaldo(apellido) {
-  if (!apellido || !ropaData.length) return null;
-  var ap = normAp(apellido);
+// Busca saldo de ropa por DNI del socio (match exacto, sin importar apellido)
+function getRopaSaldo(apellido, dni) {
+  if (!ropaData.length) return null;
 
-  // 1. Exacto normalizado (ignora mayus/minus/acentos)
+  // MATCH POR DNI - exacto y sin ambiguedad
+  if (dni) {
+    var dniLimpio = String(dni).replace(/[^0-9]/g,'');
+    var matchDni = ropaData.find(function(r) {
+      return r.dni && String(r.dni).replace(/[^0-9]/g,'') === dniLimpio;
+    });
+    if (matchDni) return matchDni;
+  }
+
+  // Fallback por apellido si no hay DNI
+  var ap = normAp(apellido);
   var match = ropaData.find(function(r) {
     return normAp(r.apellido) === ap;
   });
   if (match) return match;
 
-  // 2. El apellido de tesoreria esta contenido en el de ropa
-  // (ej: VANDOMSELAR dentro de VAN DOMSELAAR)
-  // Solo si hay UN solo resultado para evitar confusion
+  // Sin espacios
   var apSinEsp = ap.replace(/\s+/g,'');
   var matches = ropaData.filter(function(r) {
     var rn = normAp(r.apellido).replace(/\s+/g,'');
     return rn === apSinEsp || rn.indexOf(apSinEsp) >= 0 || apSinEsp.indexOf(rn) >= 0;
   });
   if (matches.length === 1) return matches[0];
-
   return null;
 }
 
@@ -931,15 +935,17 @@ function renderDeudas(){
   var all=socios.map(function(s){return{s:s,d:calcDeuda(s),sv:sem(calcDeuda(s))}});
   var totD=all.reduce(function(a,x){return a+x.d.deu},0),conD=all.filter(function(x){return x.d.deu>0}).length,crit=all.filter(function(x){return x.d.md>=3}).length,alDia=all.filter(function(x){return x.d.deu===0}).length;
   document.getElementById('deu-metrics').innerHTML='<div class="met red"><div class="met-lbl">Deuda total</div><div class="met-val" style="font-size:17px">'+ars(totD)+'</div><div class="met-sub">'+conD+' socios</div></div><div class="met '+(crit>0?'red':'grn')+'"><div class="met-lbl">Criticos</div><div class="met-val">'+crit+'</div></div><div class="met grn"><div class="met-lbl">Al dia</div><div class="met-val">'+alDia+'</div></div>';
+  var q=(document.getElementById('deu-q')?document.getElementById('deu-q').value||'':'').toLowerCase();
   var data=[].concat(all);
   if(filtDeu==='deudor')data=data.filter(function(x){return x.d.deu>0});
   else if(filtDeu==='critico')data=data.filter(function(x){return x.d.md>=3});
   else if(filtDeu==='ok')data=data.filter(function(x){return x.d.deu===0});
+  if(q)data=data.filter(function(x){return(x.s.nombre+' '+x.s.apellido).toLowerCase().includes(q);});
   data.sort(function(a,b){return b.d.deu-a.d.deu});
   document.getElementById('deu-list').innerHTML=data.length?data.map(function(x){
     var s=x.s,d=x.d,sv=x.sv,dcls=d.deu===0?'di-ok':d.md>=3?'di-red':'di-warn';
     var mH=d.me.map(function(mk){var lbl=MESES[MK.indexOf(mk)];var est=(d.em[lbl]||['na'])[0];var cls=est==='ok'?'ecm-ok':est==='parcial'?'ecm-warn':est==='no'?'ecm-no':'ecm-na';return'<div class="ecm '+cls+'"><div class="ecm-lbl">'+lbl+'</div><div class="ecm-val">'+(est==='ok'?'v':est==='parcial'?'~':est==='no'?'x':'-')+'</div></div>'}).join('');
-    return'<div class="deuda-item '+dcls+'"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="display:flex;align-items:center;gap:10px"><div class="av '+(s.av||'av-g')+'" style="width:40px;height:40px;font-size:14px">'+ini(s)+'</div><div><div style="font-size:14px;font-weight:700">'+s.nombre+' '+s.apellido+'</div><span class="sem '+sv.c+'" style="margin-top:4px;display:inline-flex">'+sv.t+'</span></div></div><div style="text-align:right">'+(d.deu>0?'<div class="amount-neg" style="font-size:18px">'+ars(d.deu)+'</div>':'<div class="amount-pos" style="font-size:22px">v</div>')+'</div></div><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:10px">'+mH+'</div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);align-items:center"><span>'+d.ok+'/'+d.me.length+' cuotas</span>'+(d.deu>0?'<div style="display:flex;gap:7px"><button style="font-size:13px;color:var(--green);background:var(--green-l);border:none;cursor:pointer;font-weight:700;padding:9px 13px;border-radius:8px;min-height:42px" onclick="cobrarR('+s.id+')"><i class="ti ti-bolt"></i> Cobrar</button><button style="font-size:13px;color:#25D366;background:#E8FBF0;border:none;cursor:pointer;font-weight:700;padding:9px 13px;border-radius:8px;min-height:42px;border:1.5px solid #25D366" onclick="enviarWsp('+s.id+')"><i class="ti ti-brand-whatsapp"></i> Recordar</button></div>':'')+(function(){var rp=getRopaSaldo(s.apellido);if(!rp||rp.saldo<=0)return'';return'<div style="margin-top:8px;background:#FFF3E0;border-radius:8px;padding:8px 12px;border:1.5px solid #FFB74D;display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:11px;font-weight:700;color:#E65100">ROPA NAVE56</div><div style="font-size:10px;color:#BF360C">Pagado: '+ars(rp.pagado)+' / '+ars(rp.total)+'</div></div><div style="font-size:15px;font-weight:800;color:#E65100">'+ars(rp.saldo)+'</div></div>';}())+'</div></div>';
+    return'<div class="deuda-item '+dcls+'"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="display:flex;align-items:center;gap:10px"><div class="av '+(s.av||'av-g')+'" style="width:40px;height:40px;font-size:14px">'+ini(s)+'</div><div><div style="font-size:14px;font-weight:700">'+s.nombre+' '+s.apellido+'</div><span class="sem '+sv.c+'" style="margin-top:4px;display:inline-flex">'+sv.t+'</span></div></div><div style="text-align:right">'+(d.deu>0?'<div class="amount-neg" style="font-size:18px">'+ars(d.deu)+'</div>':'<div class="amount-pos" style="font-size:22px">v</div>')+'</div></div><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:10px">'+mH+'</div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);align-items:center"><span>'+d.ok+'/'+d.me.length+' cuotas</span>'+(d.deu>0?'<div style="display:flex;gap:7px"><button style="font-size:13px;color:var(--green);background:var(--green-l);border:none;cursor:pointer;font-weight:700;padding:9px 13px;border-radius:8px;min-height:42px" onclick="cobrarR('+s.id+')"><i class="ti ti-bolt"></i> Cobrar</button><button style="font-size:13px;color:#25D366;background:#E8FBF0;border:none;cursor:pointer;font-weight:700;padding:9px 13px;border-radius:8px;min-height:42px;border:1.5px solid #25D366" onclick="enviarWsp('+s.id+')"><i class="ti ti-brand-whatsapp"></i> Recordar</button></div>':'')+(function(){var rp=getRopaSaldo(s.apellido,s.dni);if(!rp||rp.saldo<=0)return'';return'<div style="margin-top:8px;background:#FFF3E0;border-radius:8px;padding:8px 12px;border:1.5px solid #FFB74D;display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:11px;font-weight:700;color:#E65100">ROPA NAVE56</div><div style="font-size:10px;color:#BF360C">Pagado: '+ars(rp.pagado)+' / '+ars(rp.total)+'</div></div><div style="font-size:15px;font-weight:800;color:#E65100">'+ars(rp.saldo)+'</div></div>';}())+'</div></div>';
   }).join(''):'<div class="empty">Sin socios.</div>';
 }
 function cobrarR(id){goTo('cobro');setTimeout(function(){pickS(id);setMonto(cuota);document.querySelectorAll('#tipo-grid .tc').forEach(function(b){if(b.textContent==='Cuota mensual')b.click()})},80)}
