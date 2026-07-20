@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0055)file:///Users/matiasfrancois/Downloads/VARBA_App_5.html -->
+<!-- saved from url=(0055)file:///Users/matiasfrancois/Downloads/VARBA_App_1.html -->
 <html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -737,12 +737,15 @@ function init(){
     if(Array.isArray(res[2]))gastos=res[2];
     if(Array.isArray(res[3]))eventos=res[3];
     setConn(true);updateBadge();
-    renderDeudas();
-    renderMovs();
-    renderGastos();
-    renderCuentas();
-    renderEventos();
-    renderPanel();
+    // Render todas las secciones en background despues de cargar datos
+    setTimeout(function(){
+      renderDeudas();
+      renderMovs();
+      renderGastos();
+      renderCuentas();
+      renderEventos();
+      renderPanel();
+    }, 100);
     toast('Conectado - '+socios.length+' socios','ok');
   }).catch(function(){setConn(false);toast('Sin conexion','err')}).finally(function(){hideLoad()});
 }
@@ -1043,9 +1046,9 @@ function goTo(v){
   document.querySelectorAll('.bn')[map.indexOf(v)].classList.add('on');
   document.getElementById('scroll-area').scrollTo(0,0);
   if(v==='panel')renderPanel();
-  if(v==='deudas'){renderDeudas();renderDeudas();}
-  if(v==='cuentas'){renderCuentas();}
-  if(v==='movs'){switchTab('c');renderMovs();renderGastos();}
+  if(v==='deudas')renderDeudas();
+  if(v==='cuentas')renderCuentas();
+  if(v==='movs'){switchTab('c');}
   if(v==='eventos')renderEventos();
   if(v==='stats')renderStats();
 }
