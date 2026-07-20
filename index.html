@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0055)file:///Users/matiasfrancois/Downloads/VARBA_App_4.html -->
+<!-- saved from url=(0055)file:///Users/matiasfrancois/Downloads/VARBA_App_5.html -->
 <html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -639,8 +639,14 @@ var filtDeu='todos',filtEv='todos',lastSid=null,editCtx=null;
 function getRopaSaldo(apellido) {
   if (!apellido || !ropaData.length) return null;
   var ap = String(apellido).trim().toUpperCase();
+  // Busqueda exacta primero
   var match = ropaData.find(function(r) {
     return r.apellido === ap;
+  });
+  if (match) return match;
+  // Busqueda parcial si no encontro exacto
+  match = ropaData.find(function(r) {
+    return r.apellido.indexOf(ap) >= 0 || ap.indexOf(r.apellido) >= 0;
   });
   return match || null;
 }
