@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0055)file:///Users/matiasfrancois/Downloads/VARBA_App_3.html -->
+<!-- saved from url=(0055)file:///Users/matiasfrancois/Downloads/VARBA_App_4.html -->
 <html lang="es"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -592,7 +592,7 @@ textarea{resize:none;height:70px;line-height:1.5}
 <div class="loading" id="loading"><div class="loading-box"><div class="spin"></div><p id="loading-txt">Cargando...</p></div></div>
 
 <script>
-var URL_SCRIPT='https://script.google.com/macros/s/AKfycbyKs4-JK_9VVMhQ16Dm_5WOKys1vbfgRHxS83v-6gO2wdnoD3oojmp1J6wru6XqLT7PGQ/exec';
+var URL_SCRIPT='https://script.google.com/macros/s/AKfycbx0EYumQz3Wxh28W9ocT9ipDaJSD9X9hnQee0b4oXNGPAKyjPitdl-dHaq2hGI8GDWMTQ/exec';
 var USUARIOS={'matias':{pass:'Matias2026',display:'Matias'},'figon':{pass:'Tesorero2026',display:'Figon'},'quique':{pass:'VARBA2026',display:'Quique'}};
 var usuarioActual=null;
 
@@ -651,7 +651,8 @@ function fd(d){
   var s = String(d);
   if(s.indexOf('T')>=0) s = s.split('T')[0];
   var p = s.split('-');
-  return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : s;
+  if(p.length===3 && p[0].length===4 && !isNaN(p[1]) && !isNaN(p[2])) return p[2]+'/'+p[1]+'/'+p[0];
+  return '';
 }
 function ini(s){return(s.nombre[0]+(s.apellido?s.apellido[0]:'')).toUpperCase()}
 function gs(id){return socios.find(function(s){return String(s.id)===String(id)})}
