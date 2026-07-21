@@ -555,7 +555,7 @@ textarea{resize:none;height:70px;line-height:1.5}
 <div id="mas-overlay" onclick="closeMas()" style="display:none;position:fixed;inset:0;z-index:98;background:rgba(0,0,0,.3)"></div>
 
 <!-- Menu Mas — panel deslizable desde abajo -->
-<div id="mas-menu" style="display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-radius:20px 20px 0 0;box-shadow:0 -8px 32px rgba(0,0,0,.15);z-index:99;padding:0 16px calc(16px + var(--safe-bottom))">
+<div id="mas-menu" style="display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-radius:20px 20px 0 0;box-shadow:0 -8px 32px rgba(0,0,0,.15);z-index:99;padding:0 16px calc(16px + var(--safe-bottom));max-height:80vh;overflow-y:auto">
   <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 16px"></div>
   <div style="font-size:13px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Más opciones</div>
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:8px">
@@ -570,6 +570,9 @@ textarea{resize:none;height:70px;line-height:1.5}
     </button>
     <button onclick="goTo(&#39;stats&#39;);closeMas()" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 8px;border:1.5px solid var(--border2);border-radius:14px;background:#fff;cursor:pointer;color:var(--text2);font-size:13px;font-weight:600;min-height:80px">
       <i class="ti ti-chart-pie" style="font-size:26px;color:#534AB7"></i>Stats
+    </button>
+    <button onclick="goTo('caja');closeMas()" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 8px;border:1.5px solid var(--border2);border-radius:14px;background:#fff;cursor:pointer;color:var(--text2);font-size:13px;font-weight:600;min-height:80px">
+      <i class="ti ti-building-bank" style="font-size:26px;color:#0F6E56"></i>Caja
     </button>
   </div>
 </div>
