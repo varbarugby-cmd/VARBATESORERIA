@@ -477,6 +477,19 @@ textarea{resize:none;height:70px;line-height:1.5}
 </div>
 
 
+<!-- CAJA -->
+<div id="v-caja" class="view">
+  <div class="metrics-2" id="caja-metrics"></div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-cash"></i>Efectivo</div>
+    <div id="caja-efectivo-detalle"></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="ti ti-building-bank"></i>Banco (Transferencias)</div>
+    <div id="caja-banco-detalle"></div>
+  </div>
+</div>
+
 <!-- STATS -->
 <div id="v-stats" class="view">
 
@@ -632,7 +645,7 @@ var METS=[{l:'Efectivo',i:'ti-cash'},{l:'Transferencia',i:'ti-arrows-exchange'},
 var MESES=['Mar 26','Abr 26','May 26','Jun 26','Jul 26','Ago 26','Sep 26','Oct 26'];
 var MK=['2026-03','2026-04','2026-05','2026-06','2026-07','2026-08','2026-09','2026-10'];
 var MES_HOY='2026-06';
-var socios=[],movs=[],gastos=[],eventos=[],ropaData=[],cuota=50000;
+var socios=[],movs=[],gastos=[],eventos=[],ropaData=[],cuota=50000,saldoCaja={};
 var selSocio=null,selTipo='Cuota mensual',selMet='Efectivo',selCat='',selMetG='Efectivo';
 var filtDeu='todos',filtEv='todos',lastSid=null,editCtx=null;
 
@@ -771,12 +784,13 @@ function validarG(){document.getElementById('btn-gasto').disabled=!(selCat&&pars
 function init(){
   buildUI();
   showLoad('Conectando con Google Sheets...');
-  Promise.all([apiGet('getSocios'),apiGet('getMovs'),apiGet('getGastos'),apiGet('getEventos'),apiGet('getRopa')]).then(function(res){
+  Promise.all([apiGet('getSocios'),apiGet('getMovs'),apiGet('getGastos'),apiGet('getEventos'),apiGet('getRopa'),apiGet('getSaldoCaja')]).then(function(res){
     if(Array.isArray(res[0]))socios=res[0];
     if(Array.isArray(res[1]))movs=res[1];
     if(Array.isArray(res[2]))gastos=res[2];
     if(Array.isArray(res[3]))eventos=res[3];
     if(Array.isArray(res[4]))ropaData=res[4];
+    if(res[5]&&!res[5].error)saldoCaja=res[5];
     setConn(true);updateBadge();
     // Render todas las secciones en background despues de cargar datos
     setTimeout(function(){
@@ -786,6 +800,7 @@ function init(){
       renderCuentas();
       renderEventos();
       renderPanel();
+      renderCaja();
     }, 100);
     toast('Conectado - '+socios.length+' socios','ok');
   }).catch(function(){setConn(false);toast('Sin conexion','err')}).finally(function(){hideLoad()});
@@ -1094,6 +1109,7 @@ function goTo(v){
   if(v==='movs'){switchTab('c');}
   if(v==='eventos')renderEventos();
   if(v==='stats')renderStats();
+  if(v==='caja')renderCaja();
 }
 
 function enviarWsp(id) {
@@ -1368,6 +1384,28 @@ function renderTopDeudores() {
 }
 
 
+
+function renderCaja(){
+  if(!saldoCaja||typeof saldoCaja.saldoEfectivo==='undefined'){
+    document.getElementById('caja-metrics').innerHTML='';
+    document.getElementById('caja-efectivo-detalle').innerHTML='<div class="empty">Sin datos de caja todavia.</div>';
+    document.getElementById('caja-banco-detalle').innerHTML='';
+    return;
+  }
+  document.getElementById('caja-metrics').innerHTML=
+    '<div class="met grn"><div class="met-lbl">Saldo Efectivo</div><div class="met-val">'+ars(saldoCaja.saldoEfectivo)+'</div></div>'+
+    '<div class="met grn"><div class="met-lbl">Saldo Banco</div><div class="met-val">'+ars(saldoCaja.saldoBanco)+'</div></div>';
+  document.getElementById('caja-efectivo-detalle').innerHTML=
+    '<div class="rc-row"><span class="rc-lbl">Saldo inicial</span><span class="rc-val">'+ars(saldoCaja.saldoInicialEfectivo)+'</span></div>'+
+    '<div class="rc-row"><span class="rc-lbl">+ Cobros</span><span class="rc-val" style="color:var(--green-d)">'+ars(saldoCaja.cobrosEfectivo)+'</span></div>'+
+    '<div class="rc-row"><span class="rc-lbl">- Gastos</span><span class="rc-val" style="color:var(--red-v)">'+ars(saldoCaja.gastosEfectivo)+'</span></div>'+
+    '<div class="rc-row" style="border-top:2px solid var(--border2);padding-top:10px;margin-top:4px"><span class="rc-lbl" style="font-weight:700;color:var(--text)">Saldo actual</span><span class="rc-val" style="font-size:16px">'+ars(saldoCaja.saldoEfectivo)+'</span></div>';
+  document.getElementById('caja-banco-detalle').innerHTML=
+    '<div class="rc-row"><span class="rc-lbl">Saldo inicial</span><span class="rc-val">'+ars(saldoCaja.saldoInicialBanco)+'</span></div>'+
+    '<div class="rc-row"><span class="rc-lbl">+ Cobros</span><span class="rc-val" style="color:var(--green-d)">'+ars(saldoCaja.cobrosBanco)+'</span></div>'+
+    '<div class="rc-row"><span class="rc-lbl">- Gastos</span><span class="rc-val" style="color:var(--red-v)">'+ars(saldoCaja.gastosBanco)+'</span></div>'+
+    '<div class="rc-row" style="border-top:2px solid var(--border2);padding-top:10px;margin-top:4px"><span class="rc-lbl" style="font-weight:700;color:var(--text)">Saldo actual</span><span class="rc-val" style="font-size:16px">'+ars(saldoCaja.saldoBanco)+'</span></div>';
+}
 
 function toggleMas(){
   var m=document.getElementById('mas-menu');
