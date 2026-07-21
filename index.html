@@ -1399,7 +1399,7 @@ function verRecibo(id) {
     var nave56M = parseFloat(document.getElementById('cfg-nave56')?document.getElementById('cfg-nave56').value:250000)||250000;
     var ropaM   = parseFloat(document.getElementById('cfg-ropa')?document.getElementById('cfg-ropa').value:0)||0;
     var indumM  = parseFloat(document.getElementById('cfg-indum')?document.getElementById('cfg-indum').value:0)||0;
-    var alojM   = parseFloat(document.getElementById('cfg-aloj')?document.getElementById('cfg-aloj').value:0)||0;
+    var alojM   = Number(evSocio.aloj_total)||0;
     var fiestaM = parseFloat(document.getElementById('cfg-fiesta')?document.getElementById('cfg-fiesta').value:0)||0;
     var montos  = {'NAVE56':nave56M,'Ropa de Juego':ropaM,'Indumentaria':indumM,'Alojamiento NAVE56':alojM,'Fiesta VARBA':fiestaM};
     var pagados = {
