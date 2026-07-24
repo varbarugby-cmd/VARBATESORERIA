@@ -836,9 +836,18 @@ function pickS(id){
   var h=document.getElementById('dh');h.style.display='flex';
   if(d.deu>0){h.className='hint h-red';h.innerHTML='<i class="ti ti-alert-circle"></i><span>Deuda de <strong>'+ars(d.deu)+'</strong> ('+d.md+' mes'+(d.md>1?'es':'')+')</span>'}
   else{h.className='hint h-green';h.innerHTML='<i class="ti ti-circle-check"></i><span>Al dia con todas las cuotas</span>'}
+  var oldRopa=document.getElementById('dh-ropa');if(oldRopa)oldRopa.remove();
+  var rp=getRopaSaldo(s.apellido,s.dni);
+  if(rp&&rp.saldo>0){
+    var ropaDiv=document.createElement('div');
+    ropaDiv.id='dh-ropa';
+    ropaDiv.style.cssText='margin-top:8px;background:#FFF3E0;border-radius:8px;padding:8px 12px;border:1.5px solid #FFB74D;display:flex;justify-content:space-between;align-items:center';
+    ropaDiv.innerHTML='<div><div style="font-size:11px;font-weight:700;color:#E65100">ROPA NAVE56</div><div style="font-size:10px;color:#BF360C">Pagado: '+ars(rp.pagado)+' / '+ars(rp.total)+'</div></div><div style="font-size:15px;font-weight:800;color:#E65100">'+ars(rp.saldo)+'</div>';
+    h.insertAdjacentElement('afterend',ropaDiv);
+  }
   validar();
 }
-function clearS(){selSocio=null;document.getElementById('chip-wrap').style.display='none';document.getElementById('ssw').style.display='block';document.getElementById('dh').style.display='none';validar()}
+function clearS(){selSocio=null;document.getElementById('chip-wrap').style.display='none';document.getElementById('ssw').style.display='block';document.getElementById('dh').style.display='none';var oldRopa=document.getElementById('dh-ropa');if(oldRopa)oldRopa.remove();validar()}
 document.addEventListener('click',function(e){if(!e.target.closest('#ssw'))document.getElementById('ss-dd').classList.remove('open')});
 var nsTog2=false;
 function toggleNS(){nsTog2=!nsTog2;document.getElementById('ns-form').style.display=nsTog2?'block':'none';document.getElementById('nst-lbl').textContent=nsTog2?'Cancelar':'Agregar nuevo socio'}
