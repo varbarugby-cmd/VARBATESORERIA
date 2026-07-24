@@ -461,12 +461,17 @@ textarea{resize:none;height:70px;line-height:1.5}
   <div class="metrics-3" id="ev-metrics"></div>
   <div class="filter-row">
     <button class="flt sel" onclick="fEv(&#39;todos&#39;,this)">Todos</button>
+    <button class="flt" onclick="fEv(&#39;cuota&#39;,this)">Cuota</button>
     <button class="flt" onclick="fEv(&#39;nave56&#39;,this)">NAVE56</button>
     <button class="flt" onclick="fEv(&#39;ropa&#39;,this)">Ropa</button>
     <button class="flt" onclick="fEv(&#39;indum&#39;,this)">Indum.</button>
     <button class="flt" onclick="fEv(&#39;aloj&#39;,this)">Hotel</button>
     <button class="flt" onclick="fEv(&#39;fiesta&#39;,this)">Fiesta</button>
     <button class="flt" onclick="fEv(&#39;deuda&#39;,this)">Con deuda</button>
+  </div>
+  <div class="filter-row" id="modo-vista-row" style="display:none">
+    <button class="flt sel" id="mv-deben" onclick="setModo(&#39;deben&#39;)">Deben</button>
+    <button class="flt" id="mv-pagaron" onclick="setModo(&#39;pagaron&#39;)">Ya pagaron</button>
   </div>
   <input type="text" class="search-inp" id="ev-q" placeholder="Buscar socio..." oninput="renderEventos()">
   <div id="ev-list"></div>
@@ -572,6 +577,10 @@ textarea{resize:none;height:70px;line-height:1.5}
     </button>
     <button onclick="goTo(&#39;stats&#39;);closeMas()" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 8px;border:1.5px solid var(--border2);border-radius:14px;background:#fff;cursor:pointer;color:var(--text2);font-size:13px;font-weight:600;min-height:80px">
       <i class="ti ti-chart-pie" style="font-size:26px;color:#534AB7"></i>Stats
+    </button>
+    <button onclick="goTo('eventos');closeMas()" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 8px;border:1.5px solid var(--border2);border-radius:14px;background:#fff;cursor:pointer;color:var(--text2);font-size:13px;font-weight:600;min-height:80px">
+      <i class="ti ti-trophy" style="font-size:22px"></i>
+      <span>Eventos</span>
     </button>
     <button onclick="goTo('caja');closeMas()" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 8px;border:1.5px solid var(--border2);border-radius:14px;background:#fff;cursor:pointer;color:var(--text2);font-size:13px;font-weight:600;min-height:80px">
       <i class="ti ti-building-bank" style="font-size:26px;color:#0F6E56"></i>Caja
@@ -838,16 +847,28 @@ function pickS(id){
   else{h.className='hint h-green';h.innerHTML='<i class="ti ti-circle-check"></i><span>Al dia con todas las cuotas</span>'}
   var oldRopa=document.getElementById('dh-ropa');if(oldRopa)oldRopa.remove();
   var rp=getRopaSaldo(s.apellido,s.dni);
+  var lastInserted=h;
   if(rp&&rp.saldo>0){
     var ropaDiv=document.createElement('div');
     ropaDiv.id='dh-ropa';
     ropaDiv.style.cssText='margin-top:8px;background:#FFF3E0;border-radius:8px;padding:8px 12px;border:1.5px solid #FFB74D;display:flex;justify-content:space-between;align-items:center';
     ropaDiv.innerHTML='<div><div style="font-size:11px;font-weight:700;color:#E65100">ROPA NAVE56</div><div style="font-size:10px;color:#BF360C">Pagado: '+ars(rp.pagado)+' / '+ars(rp.total)+'</div></div><div style="font-size:15px;font-weight:800;color:#E65100">'+ars(rp.saldo)+'</div>';
     h.insertAdjacentElement('afterend',ropaDiv);
+    lastInserted=ropaDiv;
+  }
+  var oldAloj=document.getElementById('dh-aloj');if(oldAloj)oldAloj.remove();
+  var evSocio=eventos.find(function(ev){return String(ev.sid)===String(s.id)})||{};
+  var alojTotal=Number(evSocio.aloj_total)||0,alojPag=Number(evSocio.aloj_pag)||0,alojSaldo=Math.max(0,alojTotal-alojPag);
+  if(alojSaldo>0){
+    var alojDiv=document.createElement('div');
+    alojDiv.id='dh-aloj';
+    alojDiv.style.cssText='margin-top:8px;background:#FFF3E0;border-radius:8px;padding:8px 12px;border:1.5px solid #FFB74D;display:flex;justify-content:space-between;align-items:center';
+    alojDiv.innerHTML='<div><div style="font-size:11px;font-weight:700;color:#E65100">ALOJAMIENTO NAVE56</div><div style="font-size:10px;color:#BF360C">Pagado: '+ars(alojPag)+' / '+ars(alojTotal)+'</div></div><div style="font-size:15px;font-weight:800;color:#E65100">'+ars(alojSaldo)+'</div>';
+    lastInserted.insertAdjacentElement('afterend',alojDiv);
   }
   validar();
 }
-function clearS(){selSocio=null;document.getElementById('chip-wrap').style.display='none';document.getElementById('ssw').style.display='block';document.getElementById('dh').style.display='none';var oldRopa=document.getElementById('dh-ropa');if(oldRopa)oldRopa.remove();validar()}
+function clearS(){selSocio=null;document.getElementById('chip-wrap').style.display='none';document.getElementById('ssw').style.display='block';document.getElementById('dh').style.display='none';var oldRopa=document.getElementById('dh-ropa');if(oldRopa)oldRopa.remove();var oldAloj=document.getElementById('dh-aloj');if(oldAloj)oldAloj.remove();validar()}
 document.addEventListener('click',function(e){if(!e.target.closest('#ssw'))document.getElementById('ss-dd').classList.remove('open')});
 var nsTog2=false;
 function toggleNS(){nsTog2=!nsTog2;document.getElementById('ns-form').style.display=nsTog2?'block':'none';document.getElementById('nst-lbl').textContent=nsTog2?'Cancelar':'Agregar nuevo socio'}
@@ -1022,7 +1043,21 @@ function renderGastos(){
   document.getElementById('gas-foot').innerHTML=data.length+' gastos - Total: <strong>'+ars(tot)+'</strong>';
 }
 
-function fEv(f,el){filtEv=f;document.querySelectorAll('#v-eventos .flt').forEach(function(b){b.classList.remove('sel')});el.classList.add('sel');renderEventos()}
+var modoVista='deben';
+function fEv(f,el){
+  filtEv=f;
+  document.querySelectorAll('#v-eventos .filter-row:not(#modo-vista-row) .flt').forEach(function(b){b.classList.remove('sel')});
+  el.classList.add('sel');
+  var conSwitch=['cuota','nave56','ropa','indum','aloj','fiesta'].indexOf(f)>=0;
+  document.getElementById('modo-vista-row').style.display=conSwitch?'flex':'none';
+  renderEventos();
+}
+function setModo(m){
+  modoVista=m;
+  document.getElementById('mv-deben').classList.toggle('sel',m==='deben');
+  document.getElementById('mv-pagaron').classList.toggle('sel',m==='pagaron');
+  renderEventos();
+}
 function renderEventos(){
   var nave56M=parseFloat(document.getElementById('cfg-nave56').value)||250000;
   var ropaM=parseFloat(document.getElementById('cfg-ropa').value)||0;
@@ -1039,19 +1074,26 @@ function renderEventos(){
     var ind=String(ev.indum||'NO').toUpperCase()==='SI';
     var n56p=Number(ev.nave56_pag)||0,ropap=Number(ev.ropa_pag)||0,indp=Number(ev.indum_pag)||0;
     var n56d=n56?Math.max(0,nave56M-n56p):0,ropad=ropa?Math.max(0,ropaM-ropap):0,indd=ind?Math.max(0,indumM-indp):0;
+    var rp=s?getRopaSaldo(s.apellido,s.dni):null;
+    var ropaReal=!!rp,ropapReal=rp?Number(rp.pagado)||0:0,ropaTotalReal=rp?Number(rp.total)||0:0,ropadReal=rp?Math.max(0,Number(rp.saldo)||0):0;
     if(n56){totNp+=nave56M;pagNp+=n56p}
-    if(ropa){totRp+=ropaM;pagRp+=ropap}
+    if(ropaReal){totRp+=ropaTotalReal;pagRp+=ropapReal}
     if(ind){totIp+=indumM;pagIp+=indp}
-    return{ev:ev,s:s,nom:nom,n56:n56,ropa:ropa,ind:ind,n56p:n56p,ropap:ropap,indp:indp,n56d:n56d,ropad:ropad,indd:indd,totDeu:n56d+ropad+indd};
+    var alojTot=Number(ev.aloj_total)||0,aloj=alojTot>0,alojp=Number(ev.aloj_pag)||0,alojd=aloj?Math.max(0,alojTot-alojp):0;
+    var fiestap=Number(ev.fiesta_pag)||0,fiestad=fiestaM>0?Math.max(0,fiestaM-fiestap):0;
+    var cuoD=s?calcDeuda(s).deu:0;
+    var cuoP=s?md(s.id).filter(function(m){return m.tipo==='Cuota mensual'}).reduce(function(a,m){return a+Number(m.monto)},0):0;
+    return{ev:ev,s:s,nom:nom,n56:n56,ropa:ropaReal,ind:ind,n56p:n56p,ropap:ropapReal,indp:indp,n56d:n56d,ropad:ropadReal,indd:indd,ropaTotal:ropaTotalReal,aloj:aloj,alojTot:alojTot,alojp:alojp,alojd:alojd,fiestap:fiestap,fiestad:fiestad,cuoD:cuoD,cuoP:cuoP,totDeu:n56d+ropadReal+indd+alojd};
   });
   document.getElementById('ev-metrics').innerHTML='<div class="met grn full"><div class="met-lbl">NAVE56 cobrado</div><div class="met-val" style="font-size:17px">'+ars(pagNp)+'<span style="font-size:13px;color:var(--text3);font-weight:400"> / '+ars(totNp)+'</span></div></div><div class="met"><div class="met-lbl">Ropa cobrado</div><div class="met-val" style="font-size:17px;color:var(--blue)">'+ars(pagRp)+'</div><div class="met-sub">de '+ars(totRp)+'</div></div><div class="met"><div class="met-lbl">Indum. cobrado</div><div class="met-val" style="font-size:17px;color:#534AB7">'+ars(pagIp)+'</div><div class="met-sub">de '+ars(totIp)+'</div></div>';
   var filtered=data.filter(function(x){
     if(q&&!x.nom.toLowerCase().includes(q))return false;
-    if(filtEv==='nave56')return x.n56;
-    if(filtEv==='ropa')return x.ropa;
-    if(filtEv==='indum')return x.ind;
-    if(filtEv==='aloj')return x.aloj;
-    if(filtEv==='fiesta')return fiestaM>0;
+    if(filtEv==='cuota')return modoVista==='deben'?x.cuoD>0:x.cuoD<=0;
+    if(filtEv==='nave56')return x.n56&&(modoVista==='deben'?x.n56d>0:x.n56d<=0);
+    if(filtEv==='ropa')return x.ropa&&(modoVista==='deben'?x.ropad>0:x.ropad<=0);
+    if(filtEv==='indum')return x.ind&&(modoVista==='deben'?x.indd>0:x.indd<=0);
+    if(filtEv==='aloj')return x.aloj&&(modoVista==='deben'?x.alojd>0:x.alojd<=0);
+    if(filtEv==='fiesta')return fiestaM>0&&(modoVista==='deben'?x.fiestad>0:x.fiestad<=0);
     if(filtEv==='deuda')return x.totDeu>0;
     return true;
   });
@@ -1063,9 +1105,10 @@ function renderEventos(){
     var noP=!x.n56&&!x.ropa&&!x.ind;
     var items='';
     if(x.n56)items+='<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border2)"><div><div style="font-size:13px;font-weight:600">Torneo NAVE56</div><div style="font-size:11px;color:var(--text3)">Pagado: '+ars(x.n56p)+' / '+ars(nave56M)+'</div></div><div style="text-align:right">'+(x.n56d>0?'<div class="amount-neg" style="font-size:14px">'+ars(x.n56d)+'</div><div style="font-size:10px;color:var(--text3)">pendiente</div>':'<div class="amount-pos" style="font-size:16px">v</div>')+'</div></div>';
-    if(x.ropa)items+='<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border2)"><div><div style="font-size:13px;font-weight:600">Ropa de Juego</div><div style="font-size:11px;color:var(--text3)">Pagado: '+ars(x.ropap)+' / '+ars(ropaM)+'</div></div><div style="text-align:right">'+(x.ropad>0?'<div class="amount-neg" style="font-size:14px">'+ars(x.ropad)+'</div>':'<div class="amount-pos" style="font-size:16px">v</div>')+'</div></div>';
+    if(x.ropa)items+='<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border2)"><div><div style="font-size:13px;font-weight:600">Ropa de Juego</div><div style="font-size:11px;color:var(--text3)">Pagado: '+ars(x.ropap)+' / '+ars(x.ropaTotal)+'</div></div><div style="text-align:right">'+(x.ropad>0?'<div class="amount-neg" style="font-size:14px">'+ars(x.ropad)+'</div>':'<div class="amount-pos" style="font-size:16px">v</div>')+'</div></div>';
     if(x.ind)items+='<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border2)"><div><div style="font-size:13px;font-weight:600">Indumentaria</div><div style="font-size:11px;color:var(--text3)">Pagado: '+ars(x.indp)+' / '+ars(indumM)+'</div></div><div style="text-align:right">'+(x.indd>0?'<div class="amount-neg" style="font-size:14px">'+ars(x.indd)+'</div>':'<div class="amount-pos" style="font-size:16px">v</div>')+'</div></div>';
     if(x.aloj&&alojM>0)items+='<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border2)"><div><div style="font-size:13px;font-weight:600">Alojamiento NAVE56</div><div style="font-size:11px;color:var(--text3)">Pagado: '+ars(x.alojp)+' / '+ars(alojM)+'</div></div><div style="text-align:right">'+(x.alojd>0?'<div class="amount-neg" style="font-size:14px">'+ars(x.alojd)+'</div>':'<div class="amount-pos" style="font-size:16px">v</div>')+'</div></div>';
+    if(x.cuoD>0||x.cuoP>0)items+='<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border2)"><div><div style="font-size:13px;font-weight:600">Cuota mensual</div><div style="font-size:11px;color:var(--text3)">Pagado: '+ars(x.cuoP)+'</div></div><div style="text-align:right">'+(x.cuoD>0?'<div class="amount-neg" style="font-size:14px">'+ars(x.cuoD)+'</div>':'<div class="amount-pos" style="font-size:16px">v</div>')+'</div></div>';
     if(fiestaM>0)items+='<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0"><div><div style="font-size:13px;font-weight:600">Fiesta VARBA</div><div style="font-size:11px;color:var(--text3)">Pagado: '+ars(x.fiestap)+' / '+ars(fiestaM)+'</div></div><div style="text-align:right">'+(x.fiestad>0?'<div class="amount-neg" style="font-size:14px">'+ars(x.fiestad)+'</div>':'<div class="amount-pos" style="font-size:16px">v</div>')+'</div></div>';
     return'<div class="ec-card" style="border-left:4px solid '+(x.totDeu>0?'var(--red-v)':x.n56||x.ropa||x.ind?'var(--green)':'var(--border)')+'"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:'+(items?'10px':'0')+'"><div style="display:flex;align-items:center;gap:10px"><div class="av '+av+'" style="width:40px;height:40px;font-size:14px">'+in2+'</div><div><div style="font-size:14px;font-weight:700">'+x.nom+'</div><div style="margin-top:5px;display:flex;gap:5px;flex-wrap:wrap">'+(x.n56?'<span style="background:#E1F5EE;color:#0F6E56;padding:2px 7px;border-radius:8px;font-size:11px;font-weight:600">NAVE56</span>':'')+(x.ropa?'<span style="background:#E6F1FB;color:#185FA5;padding:2px 7px;border-radius:8px;font-size:11px;font-weight:600">Ropa</span>':'')+(x.ind?'<span style="background:#EEEDFE;color:#534AB7;padding:2px 7px;border-radius:8px;font-size:11px;font-weight:600">Indum.</span>':'')+(x.aloj&&alojM>0?'<span style="background:#FFF3E0;color:#E65100;padding:2px 7px;border-radius:8px;font-size:11px;font-weight:600">Hotel</span>':'')+(fiestaM>0?'<span style="background:#FCE4EC;color:#C2185B;padding:2px 7px;border-radius:8px;font-size:11px;font-weight:600">Fiesta</span>':'')+(noP?'<span style="background:#f0f0f0;color:#999;padding:2px 7px;border-radius:8px;font-size:11px">No participa</span>':'')+'</div></div></div><div style="text-align:right">'+(x.totDeu>0?'<div class="amount-neg" style="font-size:17px">'+ars(x.totDeu)+'</div><div style="font-size:10px;color:var(--text3)">pendiente</div>':'')+'</div></div>'+items+(x.n56||x.ropa||x.ind?'<button style="margin-top:10px;padding:11px;background:transparent;border:2px solid var(--green);color:var(--green);border-radius:var(--radius);font-size:14px;font-weight:700;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:7px;min-height:46px" onclick="cobrarEvento('+x.ev.sid+','+x.n56d+','+x.ropad+','+x.indd+')"><i class="ti ti-bolt"></i>Registrar pago</button>':'')+'</div>';
   }).join('');
