@@ -845,6 +845,20 @@ function pickS(id){
   var h=document.getElementById('dh');h.style.display='flex';
   if(d.deu>0){h.className='hint h-red';h.innerHTML='<i class="ti ti-alert-circle"></i><span>Deuda de <strong>'+ars(d.deu)+'</strong> ('+d.md+' mes'+(d.md>1?'es':'')+')</span>'}
   else{h.className='hint h-green';h.innerHTML='<i class="ti ti-circle-check"></i><span>Al dia con todas las cuotas</span>'}
+  renderExtraCards(s);
+  validar();
+  var pickedId=id;
+  apiGet('getRopa').then(function(res){
+    if(Array.isArray(res))ropaData=res;
+    if(selSocio&&String(selSocio.id)===String(pickedId))renderExtraCards(selSocio);
+  }).catch(function(){});
+  apiGet('getEventos').then(function(res){
+    if(Array.isArray(res))eventos=res;
+    if(selSocio&&String(selSocio.id)===String(pickedId))renderExtraCards(selSocio);
+  }).catch(function(){});
+}
+function renderExtraCards(s){
+  var h=document.getElementById('dh');
   var oldRopa=document.getElementById('dh-ropa');if(oldRopa)oldRopa.remove();
   var rp=getRopaSaldo(s.apellido,s.dni);
   var lastInserted=h;
@@ -866,7 +880,6 @@ function pickS(id){
     alojDiv.innerHTML='<div><div style="font-size:11px;font-weight:700;color:#E65100">ALOJAMIENTO NAVE56</div><div style="font-size:10px;color:#BF360C">Pagado: '+ars(alojPag)+' / '+ars(alojTotal)+'</div></div><div style="font-size:15px;font-weight:800;color:#E65100">'+ars(alojSaldo)+'</div>';
     lastInserted.insertAdjacentElement('afterend',alojDiv);
   }
-  validar();
 }
 function clearS(){selSocio=null;document.getElementById('chip-wrap').style.display='none';document.getElementById('ssw').style.display='block';document.getElementById('dh').style.display='none';var oldRopa=document.getElementById('dh-ropa');if(oldRopa)oldRopa.remove();var oldAloj=document.getElementById('dh-aloj');if(oldAloj)oldAloj.remove();validar()}
 document.addEventListener('click',function(e){if(!e.target.closest('#ssw'))document.getElementById('ss-dd').classList.remove('open')});
